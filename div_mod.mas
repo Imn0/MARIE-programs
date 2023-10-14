@@ -1,0 +1,49 @@
+// MARIE div mod 
+// 2023 Krzysztof Andrzejewski
+// 
+jump Program
+
+// Variables 
+div, DEC 0
+reminder, DEC 0
+result, DEC 0
+
+// Const
+ONE, DEC 1
+
+
+// Program
+Program, JnS Divroutine
+LOAD result
+Output 
+LOAD reminder
+Output 
+HALT
+
+//setup for div, stores reminder and div, clears result 
+Divroutine, HEX 000
+            INPUT
+            STORE reminder //reminder is number we are dividing
+            INPUT 
+            STORE div //div is number we are dividing by 
+            CLEAR
+            STORE result 
+
+divloop,    LOAD reminder
+            SUBT div
+            
+            // If result is negative we leave loop and end subroutine
+            Skipcond 000
+            jump divlooppos 
+            JumpI Divroutine
+            
+            // otherwise we jump back into loop
+divlooppos, STORE reminder  // result was positive so we store as a reminder 
+            LOAD result     // adding one to final div result 
+            ADD ONE
+            STORE result
+            jump divloop    //back to loop
+
+
+
+

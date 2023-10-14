@@ -1,0 +1,124 @@
+// MARIE program to calculate sin and cos of given x value 
+// 2023 Krzysztof Andrzejewski
+// 
+jump Program
+
+// Variables 
+div, DEC 0      // FOR DIV
+reminder, DEC 0 // FOR DIV
+result, DEC 0   // FOR DIV
+
+cos, DEC 10000  // FOR tryg, for better accuracy change it to 16384 or 32768 and adjust output accordingly, 
+                // defacto what defines scaling factro because cos(0) = 1 
+sin, DEC 0      // FOR tryg
+counter, DEC 0  // FOR tryg
+xvar, DEC 0     // x val for sin and cos, true val is x / epsilon, take into account scaling factor 
+epsilon, DEC 0  // 1000 seems to be the sweetspot 
+                
+
+toprint, dec 0  // number to print in special print
+
+// Const
+ZERO, DEC 0
+ONE, DEC 1
+THOUSAND, DEC 1000
+TEN, DEC 10
+
+// Program
+// calculation of sin(true x) and cos(ture x) in Fixed-point with scaling 1/10000 or 16384 or 32768
+//                                                                 depending on starting value of cos
+// i.e. x = 3141 -> sin(3.141) 
+Program,    LOAD THOUSAND   // choose your epsilon here
+            STORE epsilon   
+            STORE div       // in trygloop we always divide by epsilon
+            INPUT 
+            STORE xvar  
+            JnS Trygroutine
+            
+            // because we start with cos(0) = 1(.)0000 i.e. 4 decimal places 
+            // and we need sin(x/1000)*1000 not *10000 we have to divide by 10
+            // however that takes very very very very very long time 
+            // coment           THESE lines and un-comment THOSE to just output sin(x/1000)*10000
+            //                    |                            |
+            //                    |                            |
+            //                    |                            |
+            //                   \/                           \/
+            LOAD sin            
+            OUTPUT                                    / <- those 
+            //STORE toprint   / <- these 
+            //JnS specialout  / <- these 
+            LOAD cos            
+            OUTPUT                                    / <- those  
+            //STORE toprint   / <- these 
+            //JnS specialout  / <- these 
+            HALT
+
+Trygroutine, HEX 0000
+
+// cos = cos - sin // epsilon
+// sin = sin + cos // epsilon
+trygcond,   LOAD xvar
+            SUBT counter
+            //leave loop when i == x 
+            Skipcond 400    
+            jump trygloop
+            JumpI Trygroutine  
+
+trygloop,   LOAD counter    // i++
+            ADD ONE
+            STORE counter
+
+            LOAD sin        // cos = cos - sin / 1000
+            STORE reminder
+            JnS Divroutine
+            LOAD cos 
+            SUBT result     // in result we have sin / 1000
+            STORE cos
+
+            LOAD cos        // sin = sin + cos / 1000
+            STORE reminder
+            JnS Divroutine
+            LOAD sin
+            ADD result     // in result we have sin / 1000
+            STORE sin
+
+            jump trygcond
+            
+
+//setup for div, clears result 
+Divroutine, HEX 0000
+            CLEAR
+            STORE result 
+
+divcond,    LOAD reminder
+            SUBT div
+            
+            // If result is negative we leave loop and end subroutine
+            Skipcond 000
+            jump divloop 
+            JumpI Divroutine
+            
+            // otherwise we jump back into loop
+divloop,    STORE reminder // result was positive so we store as a reminder 
+            LOAD result // adding one to final div result 
+            ADD ONE
+            STORE result
+            jump divcond
+
+// subroutine used for scaling 1 (normal decimal one) 
+// from 10000(one and 4 zeroes) back to 1000(one and 3 zeroes)
+// and then printing it to screen or (wherever it prints ¯\_(ツ)_/¯ )
+// to use with scaling factor 1/1000
+specialout, HEX 0
+            LOAD TEN
+            STORE div
+            LOAD toprint
+            STORE reminder
+            JnS Divroutine
+            LOAD result
+            OUTPUT
+            JumpI specialout
+             
+
+
+

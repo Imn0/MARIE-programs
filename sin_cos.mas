@@ -34,7 +34,8 @@ Program,    LOAD THOUSAND   // choose your epsilon here
             INPUT 
             STORE xvar  
             JnS Trygroutine
-            
+
+            // if you want onyl 3 digits, not 4
             // because we start with cos(0) = 1(.)0000 i.e. 4 decimal places 
             // and we need sin(x/1000)*1000 not *10000 we have to divide by 10
             // however that takes very very very very very long time 

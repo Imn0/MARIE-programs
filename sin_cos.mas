@@ -22,6 +22,7 @@ toprint, dec 0  // number to print in special print
 ZERO, DEC 0
 ONE, DEC 1
 THOUSAND, DEC 1000
+FIVEHUN, DEC 500
 TEN, DEC 10
 
 // Program
@@ -35,23 +36,11 @@ Program,    LOAD THOUSAND   // choose your epsilon here
             STORE xvar  
             JnS Trygroutine
 
-            // if you want onyl 3 digits, not 4
-            // because we start with cos(0) = 1(.)0000 i.e. 4 decimal places 
-            // and we need sin(x/1000)*1000 not *10000 we have to divide by 10
-            // however that takes very very very very very long time 
-            // coment           THESE lines and un-comment THOSE to just output sin(x/1000)*10000
-            //                    |                            |
-            //                    |                            |
-            //                    |                            |
-            //                   \/                           \/
             LOAD sin            
-            OUTPUT                                    / <- those 
-            //STORE toprint   / <- these 
-            //JnS specialout  / <- these 
+            OUTPUT                                     
             LOAD cos            
-            OUTPUT                                    / <- those  
-            //STORE toprint   / <- these 
-            //JnS specialout  / <- these 
+            OUTPUT                                     
+            
             HALT
 
 Trygroutine, HEX 0000
@@ -72,14 +61,28 @@ trygloop,   LOAD counter    // i++
             LOAD sin        // cos = cos - sin / 1000
             STORE reminder
             JnS Divroutine
-            LOAD cos 
+            LOAD reminder
+            SUBT FIVEHUN    // ac <- reminder - 500
+            Skipcond 800    // ac > 0 then we reminder is greater than 500 and we add 1 
+            jump no_add1
+            LOAD result
+            ADD ONE
+            STORE result
+no_add1,    LOAD cos 
             SUBT result     // in result we have sin / 1000
             STORE cos
 
             LOAD cos        // sin = sin + cos / 1000
             STORE reminder
             JnS Divroutine
-            LOAD sin
+            LOAD reminder
+            SUBT FIVEHUN
+            Skipcond 800    // reminder - 500 > 0 then we add 1 
+            jump no_add2
+            LOAD result
+            ADD ONE
+            STORE result
+no_add2,    LOAD sin
             ADD result     // in result we have sin / 1000
             STORE sin
 
@@ -105,21 +108,3 @@ divloop,    STORE reminder // result was positive so we store as a reminder
             ADD ONE
             STORE result
             jump divcond
-
-// subroutine used for scaling 1 (normal decimal one) 
-// from 10000(one and 4 zeroes) back to 1000(one and 3 zeroes)
-// and then printing it to screen or (wherever it prints ¯\_(ツ)_/¯ )
-// to use with scaling factor 1/1000
-specialout, HEX 0
-            LOAD TEN
-            STORE div
-            LOAD toprint
-            STORE reminder
-            JnS Divroutine
-            LOAD result
-            OUTPUT
-            JumpI specialout
-             
-
-
-
